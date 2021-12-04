@@ -13,7 +13,7 @@ import pandas as pd
 my_secret = os.environ['botsy_like']
 client  = discord.Client()
 # Get a random number to use to pick from time stamp list of NFT's
-# number = random.randrange(0,20)
+# number = random.randrange(0,10)
 
 def get_quote():
   """Returns a random Quote from zenquote API"""
@@ -26,7 +26,7 @@ def get_quote():
 def get_art(number):
   """Returns a pseudoRandom NFT from HicDex API"""
   query = """query MyQuery {
-  hic_et_nunc_token(limit: 20, order_by: {timestamp: desc_nulls_last}) {
+  hic_et_nunc_token(limit: 10, order_by: {title: asc}) {
     display_uri
     id
   }
@@ -44,6 +44,8 @@ def get_art(number):
   link_string = f"https://hic.af/objkt/{df_objkt_id}"
   img_url = f"https://cloudflare-ipfs.com/ipfs/{img_string}"
   
+  print(img_url)
+  print(link_string)
   return img_url
 
 @client.event
@@ -62,7 +64,7 @@ async def on_message(message):
     await message.channel.send(quote)
   
   if message.content.startswith('$art'):
-    num = random.randrange(0,20)
+    num = random.randrange(0,10)
     art = get_art(num)
     await message.channel.send(art)
 
