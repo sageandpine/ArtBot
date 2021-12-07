@@ -1,19 +1,19 @@
 # Tezos_Art_Bot pulls a random NFT from hic dex and displays them in discord chat with a link and info when $art is called.
-# TO DO: Add link and/or title/artist/objkt number while still showing image all in one command.
 #TO DO: Add rate limiter function for discord
 
 import random
 import os
 import discord
 from replit import db
+from keep_alive import keep_alive
 import requests
 import json
 import pandas as pd
 
 my_secret = os.environ['botsy_like']
 client  = discord.Client()
-# Get a random number to use to pick from time stamp list of NFT's
-# number = random.randrange(0,10)
+# Get a random number to use to pick from list of NFT's
+
 
 def get_quote():
   """Returns a random Quote from zenquote API"""
@@ -41,12 +41,13 @@ def get_art(number):
   df_objkt_id = df["data"]["hic_et_nunc_token"][number]["id"]
   
   img_string = df_ipfs_hash[7:]
-  link_string = f"https://hic.af/objkt/{df_objkt_id}"
+  link_string = f"https://hic.art/{df_objkt_id}"
+  #link_string = f"https://objkt.link/{df_objkt_id}"
   img_url = f"https://cloudflare-ipfs.com/ipfs/{img_string}"
   
   print(img_url)
   print(link_string)
-  return img_url
+  return link_string
 
 @client.event
 async def on_ready():
@@ -68,5 +69,5 @@ async def on_message(message):
     art = get_art(num)
     await message.channel.send(art)
 
-
+keep_alive()
 client.run(my_secret)
