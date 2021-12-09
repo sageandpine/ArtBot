@@ -10,9 +10,9 @@ import requests
 import json
 import pandas as pd
 
+
 my_secret = os.environ['botsy_like']
 client  = discord.Client()
-# Get a random number to use to pick from list of NFT's
 
 
 def get_quote():
@@ -24,30 +24,38 @@ def get_quote():
 
 
 def get_art(number):
-  """Returns a pseudoRandom NFT from HicDex API"""
+  """Returns a Random NFT from the HicDex API"""
   query = """query MyQuery {
   hic_et_nunc_token(limit: 10, order_by: {title: asc}) {
     display_uri
     id
   }
-}"""
+}
+"""
+  # post query to hicdex
   url = 'https://api.hicdex.com/v1/graphql'
   r = requests.post(url, json={'query': query})
   json_data = json.loads(r.text)
+  # Convert to DataFrame
   df = pd.DataFrame(json_data)
-  
-  df_ipfs_hash = df["data"]["hic_et_nunc_token"][number]["display_uri"]
-  print(df_ipfs_hash)
+  #Access token number and store in variable
   df_objkt_id = df["data"]["hic_et_nunc_token"][number]["id"]
-  
-  img_string = df_ipfs_hash[7:]
+  # Format into a string to be returned by function
   link_string = f"https://hic.art/{df_objkt_id}"
-  #link_string = f"https://objkt.link/{df_objkt_id}"
-  img_url = f"https://cloudflare-ipfs.com/ipfs/{img_string}"
-  
-  print(img_url)
-  print(link_string)
   return link_string
+
+
+def update_objkt_list(objkt_number):
+  """Updates the replit DataBase and stores all NFTs called by the artbot"""
+  if "objkt" in db.keys():
+    objkt = db["objkt"]
+    objkt.append(objkt_number)
+    db["objkt"] = objkt
+    print(objkt)
+  else:
+    db["objkt"] = [objkt_number]
+    print(objkt)
+
 
 @client.event
 async def on_ready():
@@ -59,15 +67,18 @@ async def on_message(message):
   """Defines action in Discord when bot recieves commands"""
   if message.author == client.user:
     return
-
+  
+  # return quote
   if message.content.startswith('$inspire'):
     quote = get_quote()
     await message.channel.send(quote)
   
+  # return random nft and store in db
   if message.content.startswith('$art'):
     num = random.randrange(0,10)
     art = get_art(num)
+    update_objkt_list(art) 
     await message.channel.send(art)
-
+    
 keep_alive()
 client.run(my_secret)
