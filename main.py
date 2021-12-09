@@ -23,10 +23,52 @@ def get_quote():
   return quote
 
 
-def get_art(number):
+def get_rand_art(number):
   """Returns a Random NFT from the HicDex API"""
   query = """query MyQuery {
   hic_et_nunc_token(limit: 10, order_by: {title: asc}) {
+    display_uri
+    id
+  }
+}
+"""
+  # post query to hicdex
+  url = 'https://api.hicdex.com/v1/graphql'
+  r = requests.post(url, json={'query': query})
+  json_data = json.loads(r.text)
+  # Convert to DataFrame
+  df = pd.DataFrame(json_data)
+  #Access token number and store in variable
+  df_objkt_id = df["data"]["hic_et_nunc_token"][number]["id"]
+  # Format into a string to be returned by function
+  link_string = f"https://hic.art/{df_objkt_id}"
+  return link_string
+
+def get_fresh_art(number):
+  """Returns a recently minted NFT from the HicDex API"""
+  query = """query MyQuery {
+  hic_et_nunc_token(limit: 10, order_by: {timestamp: desc}) {
+    display_uri
+    id
+  }
+}
+"""
+  # post query to hicdex
+  url = 'https://api.hicdex.com/v1/graphql'
+  r = requests.post(url, json={'query': query})
+  json_data = json.loads(r.text)
+  # Convert to DataFrame
+  df = pd.DataFrame(json_data)
+  #Access token number and store in variable
+  df_objkt_id = df["data"]["hic_et_nunc_token"][number]["id"]
+  # Format into a string to be returned by function
+  link_string = f"https://hic.art/{df_objkt_id}"
+  return link_string
+
+def get_old_art(number):
+  """Returns a low objkt number(older) NFT from the HicDex API"""
+  query = """query MyQuery {
+  hic_et_nunc_token(limit: 10, order_by: {timestamp: asc_nulls_first, title: asc}) {
     display_uri
     id
   }
@@ -75,9 +117,21 @@ async def on_message(message):
   # return random nft and store in db
   if message.content.startswith('$art'):
     num = random.randrange(0,10)
-    art = get_art(num)
-    update_objkt_list(art) 
-    await message.channel.send(art)
+    rand_art = get_rand_art(num)
+    update_objkt_list(rand_art) 
+    await message.channel.send(rand_art)
+
+  if message.content.startswith('$fresh'):
+    num = random.randrange(0,10)
+    fresh_art = get_fresh_art(num)
+    update_objkt_list(fresh_art) 
+    await message.channel.send(fresh_art)
+ 
+  if message.content.startswith('$old'):
+    num = random.randrange(0,10)
+    old_art = get_old_art(num)
+    update_objkt_list(old_art) 
+    await message.channel.send(old_art)
 
 keep_alive()
 client.run(my_secret)
