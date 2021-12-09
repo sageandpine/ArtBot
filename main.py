@@ -51,10 +51,9 @@ def update_objkt_list(objkt_number):
     objkt = db["objkt"]
     objkt.append(objkt_number)
     db["objkt"] = objkt
-    print(objkt)
+    
   else:
     db["objkt"] = [objkt_number]
-    print(objkt)
 
 
 @client.event
@@ -79,6 +78,6 @@ async def on_message(message):
     art = get_art(num)
     update_objkt_list(art) 
     await message.channel.send(art)
-    
+
 keep_alive()
 client.run(my_secret)
