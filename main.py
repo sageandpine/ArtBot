@@ -1,5 +1,11 @@
 # Tezos_Art_Bot pulls a random NFT from hic dex and displays them in discord chat with a link and info when $art is called.
-#TO DO: Add rate limiter function for discord
+
+#TO DO: ******Add rate limiter function for discord *******
+
+# TO DO: write objkts to a txt file instead/in addition to repl DB for easy retrieval
+#TO DO: Use list/Db to check for duplicates 
+#TO DO: Expand OLD function pulls since that list is static need a wider breadth to pull from
+ 
 
 import random
 import os
@@ -9,6 +15,7 @@ from keep_alive import keep_alive
 import requests
 import json
 import pandas as pd
+import datetime
 
 
 my_secret = os.environ['botsy_like']
@@ -26,7 +33,7 @@ def get_quote():
 def get_rand_art(number):
   """Returns a Random NFT from the HicDex API"""
   query = """query MyQuery {
-  hic_et_nunc_token(limit: 10, order_by: {title: asc}) {
+  hic_et_nunc_token(limit: 20, order_by: {title: asc}) {
     display_uri
     id
   }
@@ -47,7 +54,7 @@ def get_rand_art(number):
 def get_fresh_art(number):
   """Returns a recently minted NFT from the HicDex API"""
   query = """query MyQuery {
-  hic_et_nunc_token(limit: 10, order_by: {timestamp: desc}) {
+  hic_et_nunc_token(limit: 20, order_by: {timestamp: desc}) {
     display_uri
     id
   }
@@ -68,7 +75,7 @@ def get_fresh_art(number):
 def get_old_art(number):
   """Returns a low objkt number(older) NFT from the HicDex API"""
   query = """query MyQuery {
-  hic_et_nunc_token(limit: 10, order_by: {timestamp: asc_nulls_first, title: asc}) {
+  hic_et_nunc_token(limit: 20, order_by: {timestamp: asc_nulls_first, title: asc}) {
     display_uri
     id
   }
@@ -89,14 +96,10 @@ def get_old_art(number):
 
 def update_objkt_list(objkt_number):
   """Updates the replit DataBase and stores all NFTs called by the artbot"""
-  if "objkt" in db.keys():
-    objkt = db["objkt"]
-    objkt.append(objkt_number)
-    db["objkt"] = objkt
-    
-  else:
-    db["objkt"] = [objkt_number]
-
+  x = datetime.datetime.now()
+  x = x.strftime("%c")
+  with open("art_listed.txt", "a+") as f:
+      f.write(f"When: {x}, Objkt: {objkt_number[8:]}\n")
 
 @client.event
 async def on_ready():
@@ -116,19 +119,19 @@ async def on_message(message):
   
   # return random nft and store in db
   if message.content.startswith('$art'):
-    num = random.randrange(0,10)
+    num = random.randrange(0,20)
     rand_art = get_rand_art(num)
     update_objkt_list(rand_art) 
     await message.channel.send(rand_art)
 
   if message.content.startswith('$fresh'):
-    num = random.randrange(0,10)
+    num = random.randrange(0,20)
     fresh_art = get_fresh_art(num)
     update_objkt_list(fresh_art) 
     await message.channel.send(fresh_art)
  
   if message.content.startswith('$old'):
-    num = random.randrange(0,10)
+    num = random.randrange(0,20)
     old_art = get_old_art(num)
     update_objkt_list(old_art) 
     await message.channel.send(old_art)
